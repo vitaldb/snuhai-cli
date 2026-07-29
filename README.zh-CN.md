@@ -26,7 +26,7 @@
 ## ① 生成离线包（联网电脑，只做一次）
 
 ```bat
-git clone https://github.com/<账号>/snuhai-cli.git
+git clone https://github.com/vitaldb/snuhai-cli.git
 cd snuhai-cli
 make_snuhai.bat
 ```
@@ -55,10 +55,27 @@ snuhai-cli/
 双击 `snuhai.bat` 即可。仅首次会询问：
 
 ```
-服务器地址： https://llm.example.org/v1
-API 密钥：   ****
-使用的模型： （会列出从服务器查询到的模型）
+[1] 服务器地址（直接回车＝默认值）  ← 首尔大学医院用户直接回车
+[2] API 密钥                        ← 按下面的方法申请
+[3] 使用的模型                      ← 从服务器返回的列表中选择
 ```
+
+**首尔大学医院的用户无需知道服务器地址**，直接回车即可自动填入默认值
+`https://llm.snuh.org/llm`。
+
+### 申请 API 密钥（在内网中）
+
+1. 用内网浏览器打开 **<https://ai.snuh.org>**（SNUH.AI 综合 AI 平台）
+2. 使用 **SNUHUB 账号**登录
+3. 左侧菜单 **MY → 나의 키 관리**（我的密钥管理）
+   （直达：`https://ai.snuh.org/setting/my-key`）
+4. 点击右上角 **＋ 추가**（添加）
+5. 类别选 **LLM**，说明填写便于识别的名称（如 `snuhai-cli`），然后签发
+6. 复制表格中生成的**密钥值**（以 `sk-` 开头）
+7. 运行 `snuhai.bat` 后粘贴到 `API 키:` 处
+   （在黑色命令行窗口中**单击鼠标右键**即为粘贴）
+
+> 请勿与他人共用自己的密钥。SNUH.AI 为院内专用系统，所有操作均记录审计日志。
 
 之后全部自动完成：
 
@@ -104,7 +121,7 @@ snuhai.bat exec "解释一下这个仓库的作用"
 | `401` | 密钥错误 —— 删除配置文件后重新运行 |
 | `400 System message must be at the beginning` | 网关未启用。把配置文件中的 `GW=1` 后重新运行 |
 | `Model metadata ... not found` | **无害**，可以忽略 |
-| 查不到模型列表 | 确认服务器地址以 `/v1` 结尾，且密钥正确 |
+| 查不到模型列表 | 确认服务器地址与密钥是否正确（SNUH 默认值为 `https://llm.snuh.org/llm`） |
 | 提示找不到 `.snuhai` 文件夹 | 没有整个文件夹拷贝，请重新拷贝 |
 
 ---

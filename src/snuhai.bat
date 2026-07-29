@@ -50,11 +50,22 @@ if not exist "%CFG%\conf.bat" (
   echo   snuhai 최초 설정
   echo ============================================================
   echo.
-  echo  사내 LLM 서버 주소를 입력하세요. 예^) https://llm.example.org/v1
-  set /p "EP=서버 주소: "
-  if not defined EP ( echo [ERROR] 주소가 필요합니다. & pause & exit /b 1 )
+  echo  [1] 사내 LLM 서버 주소
+  echo      그냥 Enter 를 누르면 서울대학교병원 기본값을 사용합니다.
+  echo      기본값: https://llm.snuh.org/llm
+  set "EP="
+  set /p "EP=서버 주소 (Enter=기본값): "
+  if not defined EP set "EP=https://llm.snuh.org/llm"
   echo.
-  echo  API 키를 붙여넣으세요. ^(창에서 마우스 오른쪽 클릭 = 붙여넣기^)
+  echo  [2] API 키 발급 방법 ^(원내망에서^)
+  echo      1. 브라우저로  https://ai.snuh.org  접속
+  echo      2. SNUHUB 계정으로 로그인
+  echo      3. 왼쪽 메뉴  MY ^> 나의 키 관리   ^(주소: ai.snuh.org/setting/my-key^)
+  echo      4. 오른쪽 위  + 추가  클릭
+  echo      5. 구분 LLM 선택, 설명에 snuhai-cli 등을 입력하고 발급
+  echo      6. 만들어진 키 값 ^(sk- 로 시작^) 을 복사해 아래에 붙여넣기
+  echo         ^(이 창에서 마우스 오른쪽 클릭 = 붙여넣기^)
+  echo.
   set /p "KEY=API 키: "
   if not defined KEY ( echo [ERROR] 키가 필요합니다. & pause & exit /b 1 )
   echo.

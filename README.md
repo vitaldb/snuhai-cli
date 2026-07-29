@@ -28,7 +28,7 @@
 ## ① 번들 만들기 (인터넷 되는 PC, 한 번만)
 
 ```bat
-git clone https://github.com/<계정>/snuhai-cli.git
+git clone https://github.com/vitaldb/snuhai-cli.git
 cd snuhai-cli
 make_snuhai.bat
 ```
@@ -57,10 +57,28 @@ snuhai-cli/
 `snuhai.bat` 을 더블클릭하면 됩니다. 처음 한 번만 물어봅니다.
 
 ```
-서버 주소:   https://llm.example.org/v1
-API 키:      ****
-사용할 모델:  (서버에서 조회한 목록을 보여줍니다)
+[1] 서버 주소 (Enter=기본값)   ← 서울대학교병원이면 그냥 Enter
+[2] API 키                     ← 아래 방법으로 발급
+[3] 사용할 모델                ← 서버에서 조회한 목록에서 선택
 ```
+
+**서울대학교병원 사용자는 서버 주소를 몰라도 됩니다.** Enter 만 누르면
+기본값 `https://llm.snuh.org/llm` 이 자동으로 들어갑니다.
+
+### API 키 발급 (원내망에서)
+
+1. 원내망 브라우저로 **<https://ai.snuh.org>** 접속 (SNUH.AI 통합 AI 플랫폼)
+2. **SNUHUB 계정**으로 로그인
+3. 왼쪽 메뉴에서 **MY → 나의 키 관리**
+   (바로가기: `https://ai.snuh.org/setting/my-key`)
+4. 오른쪽 위 **＋ 추가** 클릭
+5. 구분은 **LLM**, 설명에는 `snuhai-cli` 처럼 알아볼 수 있는 이름을 입력하고 발급
+6. 표에 생긴 **키 값**(`sk-` 로 시작)을 복사
+7. `snuhai.bat` 실행 후 `API 키:` 에 붙여넣기
+   (검은 창에서 **마우스 오른쪽 클릭**이 붙여넣기입니다)
+
+> 발급한 키는 본인만 사용하세요. SNUH.AI 는 원내 전용 시스템이며
+> 모든 활동이 감사 로그로 기록됩니다.
 
 그 다음은 자동입니다.
 
@@ -107,7 +125,7 @@ snuhai.bat exec "이 저장소가 하는 일을 설명해줘"
 | `401` | 키 오류 — 설정 파일 삭제 후 재실행 |
 | `400 System message must be at the beginning` | 게이트웨이가 꺼진 상태. 설정 파일에서 `GW=1` 로 바꾸고 재실행 |
 | `Model metadata ... not found` | **무해**. 무시해도 됩니다 |
-| 모델 목록이 안 나옴 | 서버 주소 끝이 `/v1` 인지, 키가 맞는지 확인 |
+| 모델 목록이 안 나옴 | 서버 주소와 키가 맞는지 확인 (SNUH 기본값은 `https://llm.snuh.org/llm`) |
 | `.snuhai 폴더가 없습니다` | 폴더를 통째로 복사하지 않았습니다. 다시 복사하세요 |
 
 ---

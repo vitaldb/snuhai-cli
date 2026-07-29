@@ -29,7 +29,7 @@ En el equipo aislado **no hace falta instalar nada de antemano**, ni siquiera No
 ## ① Crear el paquete (equipo con Internet, una sola vez)
 
 ```bat
-git clone https://github.com/<usuario>/snuhai-cli.git
+git clone https://github.com/vitaldb/snuhai-cli.git
 cd snuhai-cli
 make_snuhai.bat
 ```
@@ -59,10 +59,28 @@ snuhai-cli/
 Haga doble clic en `snuhai.bat`. Solo la primera vez se le preguntará:
 
 ```
-Dirección del servidor: https://llm.example.org/v1
-Clave API:              ****
-Modelo a usar:          (muestra la lista obtenida del servidor)
+[1] Dirección del servidor (Intro = valor por defecto)  ← en el SNUH, pulse Intro
+[2] Clave API                                          ← véase cómo obtenerla abajo
+[3] Modelo a usar                                      ← elija de la lista del servidor
 ```
+
+**Los usuarios del SNUH no necesitan conocer la dirección del servidor**: al pulsar Intro
+se usa automáticamente `https://llm.snuh.org/llm`.
+
+### Cómo obtener la clave API (desde la red interna)
+
+1. Abra **<https://ai.snuh.org>** en el navegador de la red interna (plataforma SNUH.AI)
+2. Inicie sesión con su **cuenta SNUHUB**
+3. En el menú lateral: **MY → 나의 키 관리** (gestión de mis claves)
+   (acceso directo: `https://ai.snuh.org/setting/my-key`)
+4. Pulse **＋ 추가** (añadir) arriba a la derecha
+5. Categoría **LLM**; en la descripción escriba un nombre reconocible (p. ej. `snuhai-cli`) y emítala
+6. Copie el **valor de la clave** que aparece en la tabla (empieza por `sk-`)
+7. Ejecute `snuhai.bat` y péguela en `API 키:`
+   (en la ventana negra, **clic derecho** = pegar)
+
+> No comparta su clave. SNUH.AI es un sistema exclusivamente interno y todas las
+> acciones quedan registradas en el log de auditoría.
 
 A partir de ahí todo es automático:
 
@@ -110,7 +128,7 @@ Además, algunos modelos devuelven `System message must be at the beginning`; la
 | `401` | Clave incorrecta: borre el archivo de configuración y vuelva a ejecutar |
 | `400 System message must be at the beginning` | La pasarela está desactivada. Ponga `GW=1` en la configuración y reinicie |
 | `Model metadata ... not found` | **Inofensivo**, puede ignorarlo |
-| No aparece la lista de modelos | Compruebe que la dirección termina en `/v1` y que la clave es correcta |
+| No aparece la lista de modelos | Compruebe la dirección y la clave (valor por defecto del SNUH: `https://llm.snuh.org/llm`) |
 | Dice que falta la carpeta `.snuhai` | No copió la carpeta completa; cópiela de nuevo |
 
 ---

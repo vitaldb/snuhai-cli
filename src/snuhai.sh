@@ -41,9 +41,19 @@ if [ ! -f "$CFG/conf.sh" ]; then
   echo "  snuhai 최초 설정"
   echo "============================================================"
   echo
-  echo " 사내 LLM 서버 주소를 입력하세요. 예) https://llm.example.org/v1"
-  read -r -p "서버 주소: " EP
-  [ -n "${EP:-}" ] || { echo "[ERROR] 주소가 필요합니다."; exit 1; }
+  echo " [1] 사내 LLM 서버 주소"
+  echo "     그냥 Enter 를 누르면 서울대학교병원 기본값을 사용합니다."
+  echo "     기본값: https://llm.snuh.org/llm"
+  read -r -p "서버 주소 (Enter=기본값): " EP
+  EP="${EP:-https://llm.snuh.org/llm}"
+  echo
+  echo " [2] API 키 발급 방법 (원내망에서)"
+  echo "     1. 브라우저로  https://ai.snuh.org  접속"
+  echo "     2. SNUHUB 계정으로 로그인"
+  echo "     3. 왼쪽 메뉴  MY > 나의 키 관리   (주소: ai.snuh.org/setting/my-key)"
+  echo "     4. 오른쪽 위  + 추가  클릭"
+  echo "     5. 구분 LLM 선택, 설명에 snuhai-cli 등을 입력하고 발급"
+  echo "     6. 만들어진 키 값 (sk- 로 시작) 을 복사해 아래에 붙여넣기"
   echo
   read -r -p "API 키: " KEY
   [ -n "${KEY:-}" ] || { echo "[ERROR] 키가 필요합니다."; exit 1; }
