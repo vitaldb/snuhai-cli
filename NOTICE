@@ -1,0 +1,31 @@
+SNUH Bundle
+Copyright 2026 Seoul National University Hospital
+
+이 저장소의 자체 코드(gateway.js, 설치 스크립트, 문서)는 Apache License 2.0 을 따릅니다.
+This repository's own code (gateway.js, install scripts, docs) is licensed under
+the Apache License, Version 2.0.
+
+------------------------------------------------------------------------
+포함되지 않은 제3자 소프트웨어 / Third-party software NOT bundled here
+------------------------------------------------------------------------
+이 저장소는 제3자 바이너리를 재배포하지 않습니다. fetch-packages.sh 가
+공개 배포처에서 원본 그대로 내려받습니다.
+This repository does not redistribute third-party binaries; fetch-packages.sh
+downloads them verbatim from their public sources.
+
+1. OpenAI Codex CLI  (@openai/codex)  — Apache License 2.0
+   Copyright 2025 OpenAI
+   https://github.com/openai/codex
+   Codex 는 Ratatui (MIT) 에서 파생된 코드를 포함합니다:
+     Copyright (c) 2016-2022 Florian Dehau
+     Copyright (c) 2023-2025 The Ratatui Developers
+   또한 ripgrep (MIT / Unlicense) 을 포함합니다:
+     Copyright (c) 2015 Andrew Gallant
+
+2. Node.js — MIT 및 관련 허용적 라이선스
+   https://nodejs.org
+
+"OpenAI" 와 "Codex" 는 OpenAI 의 상표입니다. 본 프로젝트는 OpenAI 와 제휴하거나
+그로부터 보증받지 않았습니다.
+"OpenAI" and "Codex" are trademarks of OpenAI. This project is not affiliated
+with or endorsed by OpenAI.

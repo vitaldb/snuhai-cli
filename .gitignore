@@ -1,0 +1,10 @@
+# make_snuhai 가 만드는 배포 폴더 (저장소에 포함하지 않음)
+snuhai-cli/
+*.zip
+*.tgz
+
+# 사용자 고유 정보 — 절대 커밋 금지
+*.key
+secrets.env
+conf.sh
+conf.bat
