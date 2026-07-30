@@ -1,5 +1,8 @@
 @echo off
-chcp 65001 >nul 2>&1
+REM UTF-8 콘솔로 전환해 한글이 깨지지 않게 한다.
+REM 단, stdin 을 파일/파이프로 넣는 자동화에서는 chcp 65001 상태의 cmd 가
+REM set /p 로 입력을 읽지 못하는 결함이 있다. 그 경우 SNUHAI_NO_UTF8=1 로 실행한다.
+if not "%SNUHAI_NO_UTF8%"=="1" chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 REM ============================================================
 REM  snuhai — 사내 LLM 서버로 Codex CLI 실행 (폐쇄망용)

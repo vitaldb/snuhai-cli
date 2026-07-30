@@ -1,32 +1,18 @@
-# snuhai-cli — Usar Codex CLI en redes aisladas
+# SNUHAI CLI
 
-[한국어](README.md) · [中文](README.zh-CN.md) · **Español**
+**Use [OpenAI Codex CLI](https://github.com/openai/codex) contra su propio servidor LLM
+interno, en equipos aislados (air-gapped) sin acceso a Internet.**
 
-Herramienta para usar **[OpenAI Codex CLI](https://github.com/openai/codex)** en equipos de
-una red interna **sin acceso a Internet** (red aislada / air-gapped), conectándolo a un
-**servidor LLM interno**.
+[한국어](README.md) · [English](README.en.md) · [中文](README.zh-CN.md) · **Español**
 
-Se creó para la red interna del Hospital Universitario Nacional de Seúl (SNUH), pero funciona
-con **cualquier servidor LLM interno que exponga una API compatible con OpenAI**.
-
----
-
-## Solo dos pasos
-
-```
-① En un equipo con Internet  →  ejecute make_snuhai.bat  (una sola vez)
-                                 └→ se crea la carpeta snuhai-cli
-
-② Copie esa carpeta entera al equipo aislado  →  doble clic en snuhai.bat
-                                                  └→ listo, ya puede usarlo.
-```
-
-En el equipo aislado **no hace falta instalar nada de antemano**, ni siquiera Node.js
-(se incluye un Node portátil dentro de la carpeta).
+Creado para la red interna del Hospital Universitario Nacional de Seúl (SNUH), pero
+funciona con **cualquier servidor LLM interno que exponga una API compatible con OpenAI**.
 
 ---
 
-## ① Crear el paquete (equipo con Internet, una sola vez)
+## Inicio rápido
+
+**① En un equipo con Internet, una sola vez** — genere el paquete.
 
 ```bat
 git clone https://github.com/vitaldb/snuhai-cli.git
@@ -35,114 +21,119 @@ make_snuhai.bat
 ```
 
 ```bash
-./make_snuhai.sh          # para crearlo desde Linux/macOS
+./make_snuhai.sh          # para generarlo desde Linux/macOS
 ```
 
-- `make_snuhai.bat` genera por defecto la versión de Windows. Puede cambiar el destino con
-  `make_snuhai.bat linux` / `both` (`make_snuhai.sh` usa `both` por defecto).
-- Codex CLI se descarga **sin modificar** del registro público de npm y se **verifica su
-  integridad** contra el hash publicado por npm (el comprobante queda en
-  `.snuhai/packages/PROVENANCE.txt`).
+Se crea un único `snuhai-cli.zip` (~180 MB).
 
-Al terminar se crea la carpeta `snuhai-cli`. Copie **la carpeta completa** (por ejemplo, en una memoria USB).
+**② Copie ese ZIP al equipo aislado**, descomprímalo y haga doble clic en `snuhai.bat`.
 
 ```
 snuhai-cli/
-├── snuhai.bat        ← Windows: ejecute solo esto
+├── snuhai.bat        ← lo único que se ejecuta (Windows)
 ├── snuhai.sh         ← Linux
-├── 읽어보세요.txt     ← instrucciones (en coreano)
-└── .snuhai/          ← archivos necesarios (no los borre)
+└── .snuhai/          ← todo lo necesario (no lo borre)
 ```
 
-## ② Usarlo en el equipo aislado
+**No hace falta instalar nada previamente** en el equipo destino, ni siquiera Node.js.
 
-Haga doble clic en `snuhai.bat`. Solo la primera vez se le preguntará:
+---
 
+## Primera ejecución
+
+Pregunta tres cosas una sola vez; a partir de ahí arranca directamente.
+
+```console
+============================================================
+  snuhai 최초 설정      (configuración inicial)
+============================================================
+
+ [1] Dirección del servidor LLM interno
+     Pulse Intro para usar el valor por defecto del SNUH.
+     por defecto: https://llm.snuh.org/llm
+Dirección del servidor (Intro = por defecto):
+
+ [2] Cómo obtener la clave API (desde la red interna)
+     1. Abra  https://ai.snuh.org  en el navegador
+     2. Inicie sesión con su cuenta SNUHUB
+     3. Menú lateral:  MY > 나의 키 관리 (gestión de mis claves)
+        (acceso directo: ai.snuh.org/setting/my-key)
+     4. Pulse  + 추가 (añadir) arriba a la derecha
+     5. Categoría LLM, descripción como snuhai-cli, y emítala
+     6. Copie el valor de la clave (empieza por sk-) y péguelo abajo
+        (clic derecho en esta ventana = pegar)
+
+Clave API:
+
+ Consultando los modelos disponibles...
+Nombre del modelo:
 ```
-[1] Dirección del servidor (Intro = valor por defecto)  ← en el SNUH, pulse Intro
-[2] Clave API                                          ← véase cómo obtenerla abajo
-[3] Modelo a usar                                      ← elija de la lista del servidor
-```
 
-**Los usuarios del SNUH no necesitan conocer la dirección del servidor**: al pulsar Intro
-se usa automáticamente `https://llm.snuh.org/llm`.
+*(La interfaz del paquete está en coreano; el flujo es idéntico.)*
 
-### Cómo obtener la clave API (desde la red interna)
+La configuración se guarda en `%USERPROFILE%\.snuhai` (Linux: `~/.snuhai`).
 
-1. Abra **<https://ai.snuh.org>** en el navegador de la red interna (plataforma SNUH.AI)
-2. Inicie sesión con su **cuenta SNUHUB**
-3. En el menú lateral: **MY → 나의 키 관리** (gestión de mis claves)
-   (acceso directo: `https://ai.snuh.org/setting/my-key`)
-4. Pulse **＋ 추가** (añadir) arriba a la derecha
-5. Categoría **LLM**; en la descripción escriba un nombre reconocible (p. ej. `snuhai-cli`) y emítala
-6. Copie el **valor de la clave** que aparece en la tabla (empieza por `sk-`)
-7. Ejecute `snuhai.bat` y péguela en `API 키:`
-   (en la ventana negra, **clic derecho** = pegar)
+## Uso
 
-> No comparta su clave. SNUH.AI es un sistema exclusivamente interno y todas las
-> acciones quedan registradas en el log de auditoría.
-
-A partir de ahí todo es automático:
-
-- Instala Codex CLI **sin conexión** (solo la primera vez).
-- Comprueba **si el servidor admite la Responses API**: si la admite se conecta directamente;
-  si no, **inicia la pasarela automáticamente** (véase más abajo).
-- La configuración se guarda en `%USERPROFILE%\.snuhai`, así que las siguientes veces arranca directo.
-
-Los argumentos se pasan tal cual a codex:
+Los argumentos se pasan tal cual a codex.
 
 ```bat
-snuhai.bat                                       :: modo interactivo
+snuhai.bat                                      :: modo interactivo
 snuhai.bat exec "explica qué hace este repositorio"
 ```
 
 ---
 
-## Por qué hace falta la pasarela
+## Cómo funciona
 
 Las versiones recientes de Codex CLI solo admiten la **Responses API**
-(`wire_api = "chat"` se eliminó en febrero de 2026). Sin embargo, vLLM o litellm —lo que se
-suele desplegar internamente— a menudo solo ofrecen **Chat Completions**.
+(`wire_api = "chat"` se eliminó en febrero de 2026). Pero vLLM y litellm —los despliegues
+internos habituales— a menudo solo ofrecen **Chat Completions**.
 
-`.snuhai/gateway.js` traduce entre ambas. Es un único archivo de Node **sin dependencias**,
-**no almacena claves** y reenvía la cabecera `Authorization` tal cual al servidor.
-Escucha solo en `127.0.0.1` y se cierra junto con codex.
+Al arrancar, `snuhai` **comprueba si su servidor admite la Responses API**:
 
-Además, algunos modelos devuelven `System message must be at the beginning`; la pasarela
-**normaliza el mensaje de sistema al principio** y evita ese error.
+- si la admite → conexión **directa**
+- si no → inicia **la pasarela** automáticamente
 
----
+La pasarela (`.snuhai/gateway.js`) es un único archivo de Node **sin dependencias**:
+**no almacena claves**, reenvía la cabecera `Authorization` tal cual, escucha solo en
+`127.0.0.1` y termina junto con codex. Además **normaliza el mensaje de sistema al
+principio**, evitando el error `System message must be at the beginning` de algunos modelos.
 
 ## Cambiar la configuración
 
 | Objetivo | Cómo |
 |---|---|
-| Volver a configurar servidor/clave/modelo | Borre `%USERPROFILE%\.snuhai\conf.bat` (Linux: `~/.snuhai/conf.sh`) y vuelva a ejecutar |
-| Cambiar solo el modelo | Edite el valor de `MODEL=` en ese mismo archivo |
-| Reinstalar | Borre `.snuhai\installed.flag` y vuelva a ejecutar |
+| Reconfigurar servidor / clave / modelo | Borre `%USERPROFILE%\.snuhai\conf.bat` (Linux: `~/.snuhai/conf.sh`) y ejecute de nuevo |
+| Cambiar solo el modelo | Edite `MODEL=` en ese mismo archivo |
+| Reinstalar | Borre `.snuhai\installed.flag` y ejecute de nuevo |
 
 ## Solución de problemas
 
 | Síntoma | Acción |
 |---|---|
-| `401` | Clave incorrecta: borre el archivo de configuración y vuelva a ejecutar |
-| `400 System message must be at the beginning` | La pasarela está desactivada. Ponga `GW=1` en la configuración y reinicie |
-| `Model metadata ... not found` | **Inofensivo**, puede ignorarlo |
-| No aparece la lista de modelos | Compruebe la dirección y la clave (valor por defecto del SNUH: `https://llm.snuh.org/llm`) |
-| Dice que falta la carpeta `.snuhai` | No copió la carpeta completa; cópiela de nuevo |
-
----
+| `401` | Clave incorrecta: borre el archivo de configuración y reintente |
+| `400 System message must be at the beginning` | Ponga `GW=1` en la configuración y reinicie |
+| `Model metadata ... not found` | **Inofensivo**, ignórelo |
+| No aparece la lista de modelos | Revise la dirección del servidor y la clave |
+| Falta la carpeta `.snuhai` | No copió la carpeta completa |
+| `Permission denied` en Linux | Ejecute `bash snuhai.sh` (después los permisos se reparan solos) |
+| Se saltan las preguntas al automatizar la entrada | Use `set SNUHAI_NO_UTF8=1`: con consola UTF-8, `set /p` no lee stdin redirigido (defecto de cmd) |
 
 ## Seguridad
 
-- **No suba claves de API al repositorio.** La configuración se guarda solo en `~/.snuhai` de cada equipo.
-- La pasarela escucha únicamente en `127.0.0.1`. No la exponga al exterior.
-- Indique siempre un **servidor LLM interno** para que los datos internos no salgan al exterior.
+- **Nunca suba claves de API.** La configuración vive solo en `~/.snuhai` de cada equipo.
+- La pasarela escucha únicamente en `127.0.0.1`. No la exponga.
+- Apunte siempre a un servidor LLM **interno** para que los datos no salgan de su red.
 
-## Licencia
+## Qué se empaqueta · Licencia
 
-- Código propio de este repositorio (`gateway.js`, scripts, documentación): **Apache-2.0** (`LICENSE`)
-- **Este repositorio no incluye OpenAI Codex CLI.** `make_snuhai` lo descarga **sin modificar**
-  desde el registro público de npm (Apache-2.0; véase `NOTICE`).
-- Tampoco incluye Node.js: se descarga desde nodejs.org (MIT y otras).
-- «OpenAI» y «Codex» son marcas de OpenAI. Este proyecto no está afiliado a OpenAI ni cuenta con su respaldo.
+`make_snuhai` descarga todo **sin modificar desde fuentes públicas** y verifica cada
+artefacto contra el hash publicado por npm, dejando el comprobante en
+`.snuhai/packages/PROVENANCE.txt`.
+
+- Código de este repositorio (`gateway.js`, scripts, documentación): **Apache-2.0** (`LICENSE`)
+- **OpenAI Codex CLI no se incluye en este repositorio** — Apache-2.0, véase `NOTICE`
+- Node.js tampoco se incluye; se descarga desde nodejs.org (MIT y otras)
+- «OpenAI» y «Codex» son marcas de OpenAI. Este proyecto no está afiliado a OpenAI ni
+  cuenta con su respaldo.

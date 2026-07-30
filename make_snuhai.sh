@@ -101,12 +101,46 @@ snuhai — 사내 LLM 서버로 Codex CLI 쓰기
 (.snuhai 폴더에는 실행에 필요한 파일이 들어 있습니다. 지우지 마세요.)
 EOF
 
-# ---------- 4. 마무리 ----------
+# ---------- 4. ZIP 으로 묶기 ----------
 echo
-echo "[4/4] 완료"
+echo "[4/4] ZIP 만드는 중..."
+cd "$HERE"
+python3 - "$OUT" <<'PY'
+import os, sys, zipfile
+src = sys.argv[1]; base = os.path.dirname(src)
+out = src + ".zip"
+with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
+    for root, dirs, files in os.walk(src):
+        for n in sorted(files):
+            fp = os.path.join(root, n)
+            arc = os.path.relpath(fp, base)
+            if os.path.islink(fp):
+                # 심볼릭 링크를 링크 그대로 저장한다.
+                # (따라가서 내용을 복사하면 node/bin/npm 같은 shim 의 require 경로가 깨진다)
+                zi = zipfile.ZipInfo(arc)
+                zi.create_system = 3                      # Unix
+                zi.external_attr = (0o120777 << 16)       # S_IFLNK | 0777
+                z.writestr(zi, os.readlink(fp))
+                continue
+            # ZipInfo.from_file 이 st_mode 를 external_attr 로 넣어준다 -> 실행권한 보존
+            zi = zipfile.ZipInfo.from_file(fp, arc)
+            zi.compress_type = zipfile.ZIP_DEFLATED
+            with open(fp, "rb") as fh:
+                z.writestr(zi, fh.read())
+print(f"  {out}  ({os.path.getsize(out)/1048576:.0f} MB)")
+PY
+sha256sum "$(basename "$OUT").zip" > "$(basename "$OUT").zip.sha256"
+if [ "${KEEP_DIR:-0}" != "1" ]; then rm -rf "$OUT"; fi
+
 echo
-du -sh "$OUT"
+echo "============================================================"
+echo " 완료"
+echo "============================================================"
+ls -lh "$OUT.zip" | awk '{print "  파일:", $NF, "("$5")"}'
+echo "  해시: $(cut -c1-16 < "$OUT.zip.sha256")…  (전체는 $(basename "$OUT").zip.sha256)"
 echo
-echo "만들어진 폴더:  $OUT"
-echo "  이 폴더를 통째로 폐쇄망 PC 로 옮긴 뒤"
-echo "  Windows 는 snuhai.bat, Linux 는 ./snuhai.sh 를 실행하세요."
+echo "  이 ZIP 하나만 폐쇄망 PC 로 옮기면 됩니다."
+echo "    1) 압축을 풉니다"
+echo "    2) Windows 는 snuhai.bat 더블클릭 / Linux 는 ./snuhai.sh 실행"
+echo
+echo "  (폴더도 남기려면  KEEP_DIR=1 ./make_snuhai.sh)"

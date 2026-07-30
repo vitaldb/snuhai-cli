@@ -73,8 +73,25 @@ copy /y "%SRC%\snuhai.sh"  "%OUT%\snuhai.sh"  >nul
 attrib +h "%LIB%" 2>nul
 
 echo.
-echo [4/4] 완료
+echo [4/4] ZIP 만드는 중...
+pushd "%HERE%"
+if exist "snuhai-cli.zip" del /q "snuhai-cli.zip"
+tar -a -c -f "snuhai-cli.zip" "snuhai-cli" 2>nul
+if not exist "snuhai-cli.zip" powershell -NoProfile -Command "Compress-Archive -Path 'snuhai-cli' -DestinationPath 'snuhai-cli.zip' -Force"
+certutil -hashfile "snuhai-cli.zip" SHA256 | findstr /v ":" | findstr /r "[0-9a-f]" > "snuhai-cli.zip.sha256"
+if /i not "%KEEP_DIR%"=="1" rmdir /s /q "snuhai-cli"
+popd
+
 echo.
-echo 만들어진 폴더:  %OUT%
-echo   이 폴더를 통째로 폐쇄망 PC 로 옮긴 뒤 snuhai.bat 을 실행하세요.
+echo ============================================================
+echo  완료
+echo ============================================================
+echo   파일: %HERE%snuhai-cli.zip
+echo   해시: snuhai-cli.zip.sha256
+echo.
+echo   이 ZIP 하나만 폐쇄망 PC 로 옮기면 됩니다.
+echo     1^) 압축을 풉니다
+echo     2^) snuhai.bat 을 더블클릭합니다
+echo.
+echo   ^(폴더도 남기려면  set KEEP_DIR=1  후 실행^)
 pause

@@ -6,6 +6,10 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB="$HERE/.snuhai"
+# 압축 해제 방식에 따라 실행권한이 사라진다(Windows 탐색기, python zipfile 등).
+# ZIP 에는 0755 로 저장돼 있지만 복원되지 않는 경우가 있어 여기서 되살린다.
+chmod +x "$0" 2>/dev/null || true
+for _f in "$LIB"/node/node-v*/bin/* ; do [ -f "$_f" ] && chmod +x "$_f" 2>/dev/null || true; done
 CFG="$HOME/.snuhai"
 export CODEX_HOME="$CFG/codex"
 export DISABLE_AUTOUPDATER=1
@@ -21,14 +25,18 @@ if [ ! -f "$LIB/installed.flag" ]; then
   echo "[설치] Codex CLI 를 설치합니다 (최초 1회, 인터넷 불필요)..."
   MAIN="$(ls "$LIB"/packages/openai-codex-*.tgz 2>/dev/null | grep -v -- '-linux-x64\|-win32-x64' | head -1)"
   [ -n "$MAIN" ] || { echo "[ERROR] packages 에 codex tarball 이 없습니다."; exit 1; }
-  npm install -g --offline --no-audit --no-fund "$MAIN" >/dev/null 2>&1 \
-    || { echo "[ERROR] 설치 실패"; exit 1; }
+  # bin/npm 은 심링크라 압축 해제 방식에 따라 깨질 수 있다. npm-cli.js 를 node 로 직접 부른다.
+  NPMCLI="$NODEDIR/lib/node_modules/npm/bin/npm-cli.js"
+  [ -f "$NPMCLI" ] || NPMCLI="$(command -v npm)"
+  if ! node "$NPMCLI" install -g --offline --no-audit --no-fund "$MAIN" >"$CFG/install.log" 2>&1; then
+    echo "[ERROR] 설치 실패 — 자세한 내용: $CFG/install.log"; tail -5 "$CFG/install.log"; exit 1
+  fi
   NATIVE="$(ls "$LIB"/packages/openai-codex-*-linux-x64.tgz 2>/dev/null | head -1)"
   if [ -n "$NATIVE" ]; then
-    CODEX_DIR="$(npm root -g)/@openai/codex"; TMP="$(mktemp -d)"
+    CODEX_DIR="$(node "$NPMCLI" root -g)/@openai/codex"; TMP="$(mktemp -d)"
     tar -xf "$NATIVE" -C "$TMP" package/vendor
     mkdir -p "$CODEX_DIR/vendor"; cp -a "$TMP/package/vendor/." "$CODEX_DIR/vendor/"; rm -rf "$TMP"
-    chmod +x "$CODEX_DIR"/vendor/*/bin/codex 2>/dev/null || true
+    chmod -R +x "$CODEX_DIR"/vendor/*/bin "$CODEX_DIR"/vendor/*/codex-path 2>/dev/null || true
   fi
   echo ok > "$LIB/installed.flag"
   echo "[설치] 완료"
