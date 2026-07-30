@@ -43,6 +43,8 @@ snuhai-cli/
 
 It asks three things once, then starts straight away every time after that.
 
+![First-run setup](docs/first-run.png)
+
 ```console
 ============================================================
   snuhai first-time setup

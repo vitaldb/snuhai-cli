@@ -43,6 +43,8 @@ snuhai-cli/
 
 Pregunta tres cosas una sola vez; a partir de ahí arranca directamente.
 
+![Configuración inicial](docs/first-run.png)
+
 ```console
 ============================================================
   snuhai 최초 설정      (configuración inicial)
