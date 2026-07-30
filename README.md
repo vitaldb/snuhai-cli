@@ -43,28 +43,31 @@ snuhai-cli/
 
 ```console
 ============================================================
-  snuhai 최초 설정
+  snuhai first-time setup
 ============================================================
 
- [1] 사내 LLM 서버 주소
-     그냥 Enter 를 누르면 서울대학교병원 기본값을 사용합니다.
-     기본값: https://llm.snuh.org/llm
-서버 주소 (Enter=기본값):
+ [1] Internal LLM server URL
+     Press Enter to use the Seoul National University Hospital default.
+     default: https://llm.snuh.org/llm
+Server URL (Enter = default):
 
- [2] API 키 발급 방법 (원내망에서)
-     1. 브라우저로  https://ai.snuh.org  접속
-     2. SNUHUB 계정으로 로그인
-     3. 왼쪽 메뉴  MY > 나의 키 관리   (주소: ai.snuh.org/setting/my-key)
-     4. 오른쪽 위  + 추가  클릭
-     5. 구분 LLM 선택, 설명에 snuhai-cli 등을 입력하고 발급
-     6. 만들어진 키 값 (sk- 로 시작) 을 복사해 아래에 붙여넣기
-        (이 창에서 마우스 오른쪽 클릭 = 붙여넣기)
+ [2] How to get an API key (from the intranet)
+     1. Open  https://ai.snuh.org  in your browser
+     2. Sign in with your SNUHUB account
+     3. Left menu:  MY > My Key Management  [나의 키 관리]
+        (direct link: ai.snuh.org/setting/my-key)
+     4. Click  + Add  [추가]  at the top right
+     5. Type = LLM, description e.g. snuhai-cli, then issue it
+     6. Copy the key value (starts with sk-) and paste it below
+        (right-click in this window = paste)
 
-API 키:
+API key:
 
- 사용 가능한 모델을 조회합니다...
-사용할 모델 이름:
+ Fetching available models...
+Model name:
 ```
+
+> 도구 화면은 **영어**입니다(외국인 사용자 고려). 대괄호 안 한글은 SNUH.AI 사이트의 실제 메뉴 이름입니다.
 
 **서울대학교병원 사용자는 서버 주소를 몰라도 됩니다** — `[1]` 에서 그냥 Enter 를 누르세요.
 설정은 `%USERPROFILE%\.snuhai` 에 저장되어 다음부터는 바로 실행됩니다.

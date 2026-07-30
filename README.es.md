@@ -47,31 +47,31 @@ Pregunta tres cosas una sola vez; a partir de ahí arranca directamente.
 
 ```console
 ============================================================
-  snuhai 최초 설정      (configuración inicial)
+  snuhai first-time setup
 ============================================================
 
- [1] Dirección del servidor LLM interno
-     Pulse Intro para usar el valor por defecto del SNUH.
-     por defecto: https://llm.snuh.org/llm
-Dirección del servidor (Intro = por defecto):
+ [1] Internal LLM server URL
+     Press Enter to use the Seoul National University Hospital default.
+     default: https://llm.snuh.org/llm
+Server URL (Enter = default):
 
- [2] Cómo obtener la clave API (desde la red interna)
-     1. Abra  https://ai.snuh.org  en el navegador
-     2. Inicie sesión con su cuenta SNUHUB
-     3. Menú lateral:  MY > 나의 키 관리 (gestión de mis claves)
-        (acceso directo: ai.snuh.org/setting/my-key)
-     4. Pulse  + 추가 (añadir) arriba a la derecha
-     5. Categoría LLM, descripción como snuhai-cli, y emítala
-     6. Copie el valor de la clave (empieza por sk-) y péguelo abajo
-        (clic derecho en esta ventana = pegar)
+ [2] How to get an API key (from the intranet)
+     1. Open  https://ai.snuh.org  in your browser
+     2. Sign in with your SNUHUB account
+     3. Left menu:  MY > My Key Management  [나의 키 관리]
+        (direct link: ai.snuh.org/setting/my-key)
+     4. Click  + Add  [추가]  at the top right
+     5. Type = LLM, description e.g. snuhai-cli, then issue it
+     6. Copy the key value (starts with sk-) and paste it below
+        (right-click in this window = paste)
 
-Clave API:
+API key:
 
- Consultando los modelos disponibles...
-Nombre del modelo:
+ Fetching available models...
+Model name:
 ```
 
-*(La interfaz del paquete está en coreano; el flujo es idéntico.)*
+*(Las etiquetas coreanas entre corchetes corresponden a lo que verá en el sitio SNUH.AI.)*
 
 La configuración se guarda en `%USERPROFILE%\.snuhai` (Linux: `~/.snuhai`).
 

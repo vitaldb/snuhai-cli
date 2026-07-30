@@ -2,13 +2,13 @@
 chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 REM ============================================================================
-REM  make_snuhai.bat — 배포 폴더(snuhai-cli)를 만든다.
+REM  make_snuhai.bat - build the distributable bundle (snuhai-cli).
 REM
-REM  ★ 인터넷이 되는 PC에서 한 번만 실행한다.
-REM    만들어진 snuhai-cli 폴더를 통째로 폐쇄망 PC로 옮기고,
-REM    그 안의 snuhai.bat 을 실행하면 끝이다.
+REM  Run this ONCE on a machine with internet access.
+REM    Then copy the resulting snuhai-cli.zip to the air-gapped machine and
+REM    run snuhai.bat inside it.
 REM
-REM    make_snuhai.bat [win^|linux^|both]      기본값: win
+REM    make_snuhai.bat [win^|linux^|both]      default: win
 REM ============================================================================
 set "HERE=%~dp0"
 set "SRC=%HERE%src"
@@ -19,18 +19,18 @@ set "LIB=%OUT%\.snuhai"
 if not defined CODEX_VER set "CODEX_VER=0.145.0"
 if not defined NODE_VER  set "NODE_VER=24.18.0"
 
-where npm  >nul 2>&1 || ( echo [ERROR] npm 이 필요합니다 ^(인터넷 되는 PC에서 실행^) & pause & exit /b 1 )
-where curl >nul 2>&1 || ( echo [ERROR] curl 이 필요합니다 & pause & exit /b 1 )
+where npm  >nul 2>&1 || ( echo [ERROR] npm is required ^(run on a machine with internet^) & pause & exit /b 1 )
+where curl >nul 2>&1 || ( echo [ERROR] curl is required & pause & exit /b 1 )
 
 echo ============================================================
-echo   snuhai 번들 생성  ^(codex %CODEX_VER% / node %NODE_VER% / target=%TARGET%^)
+echo   Building snuhai bundle  ^(codex %CODEX_VER% / node %NODE_VER% / target=%TARGET%^)
 echo ============================================================
 if exist "%OUT%" rmdir /s /q "%OUT%"
 mkdir "%LIB%\packages" 2>nul
 mkdir "%LIB%\node" 2>nul
 
 echo.
-echo [1/4] Codex CLI 내려받기...
+echo [1/4] Downloading Codex CLI...
 pushd "%LIB%\packages"
 call npm pack "@openai/codex@%CODEX_VER%" >nul 2>&1
 if /i not "%TARGET%"=="linux" call npm pack "@openai/codex@%CODEX_VER%-win32-x64" >nul 2>&1
@@ -39,11 +39,11 @@ dir /b *.tgz
 popd
 
 echo.
-echo [2/4] 포터블 Node.js 내려받기...
+echo [2/4] Downloading portable Node.js...
 pushd "%LIB%\node"
 if /i not "%TARGET%"=="linux" (
   curl -fsSLO "https://nodejs.org/dist/v%NODE_VER%/node-v%NODE_VER%-win-x64.zip"
-  if errorlevel 1 ( echo [ERROR] Node 다운로드 실패 & popd & pause & exit /b 1 )
+  if errorlevel 1 ( echo [ERROR] Node download failed & popd & pause & exit /b 1 )
   tar -xf "node-v%NODE_VER%-win-x64.zip"
   del /q "node-v%NODE_VER%-win-x64.zip"
 )
@@ -55,25 +55,25 @@ if /i not "%TARGET%"=="win" (
 popd
 
 echo.
-echo [3/4] 실행 파일 배치...
+echo [3/4] Laying out the bundle...
 copy /y "%SRC%\gateway.js" "%LIB%\gateway.js" >nul
 if exist "%HERE%NOTICE"  copy /y "%HERE%NOTICE"  "%LIB%\NOTICE"  >nul
 if exist "%HERE%LICENSE" copy /y "%HERE%LICENSE" "%LIB%\LICENSE" >nul
 copy /y "%SRC%\snuhai.bat" "%OUT%\snuhai.bat" >nul
 copy /y "%SRC%\snuhai.sh"  "%OUT%\snuhai.sh"  >nul
-> "%OUT%\읽어보세요.txt" echo snuhai - 사내 LLM 서버로 Codex CLI 쓰기
->>"%OUT%\읽어보세요.txt" echo.
->>"%OUT%\읽어보세요.txt" echo   Windows : snuhai.bat 을 더블클릭하세요.
->>"%OUT%\읽어보세요.txt" echo   Linux   : ./snuhai.sh 를 실행하세요.
->>"%OUT%\읽어보세요.txt" echo.
->>"%OUT%\읽어보세요.txt" echo 처음 실행하면 서버 주소, API 키, 모델을 한 번만 물어봅니다.
->>"%OUT%\읽어보세요.txt" echo 그 다음부터는 바로 실행됩니다. 인터넷은 필요하지 않습니다.
->>"%OUT%\읽어보세요.txt" echo.
->>"%OUT%\읽어보세요.txt" echo (.snuhai 폴더에는 실행에 필요한 파일이 들어 있습니다. 지우지 마세요.)
+> "%OUT%\README.txt" echo snuhai - run Codex CLI against an internal LLM server
+>>"%OUT%\README.txt" echo.
+>>"%OUT%\README.txt" echo   Windows : double-click  snuhai.bat
+>>"%OUT%\README.txt" echo   Linux   : run  ./snuhai.sh
+>>"%OUT%\README.txt" echo.
+>>"%OUT%\README.txt" echo On first run it asks once for the server URL, your API key and a model.
+>>"%OUT%\README.txt" echo After that it starts straight away. No internet required.
+>>"%OUT%\README.txt" echo.
+>>"%OUT%\README.txt" echo (.snuhai holds everything it needs to run - do not delete it.)
 attrib +h "%LIB%" 2>nul
 
 echo.
-echo [4/4] ZIP 만드는 중...
+echo [4/4] Creating the ZIP...
 pushd "%HERE%"
 if exist "snuhai-cli.zip" del /q "snuhai-cli.zip"
 tar -a -c -f "snuhai-cli.zip" "snuhai-cli" 2>nul
@@ -84,14 +84,14 @@ popd
 
 echo.
 echo ============================================================
-echo  완료
+echo  Done
 echo ============================================================
-echo   파일: %HERE%snuhai-cli.zip
-echo   해시: snuhai-cli.zip.sha256
+echo   file: %HERE%snuhai-cli.zip
+echo   sha256: snuhai-cli.zip.sha256
 echo.
-echo   이 ZIP 하나만 폐쇄망 PC 로 옮기면 됩니다.
-echo     1^) 압축을 풉니다
-echo     2^) snuhai.bat 을 더블클릭합니다
+echo   Copy this single ZIP to the air-gapped machine:
+echo     1^) unzip it
+echo     2^) double-click snuhai.bat
 echo.
-echo   ^(폴더도 남기려면  set KEEP_DIR=1  후 실행^)
+echo   ^(keep the unzipped folder too: set KEEP_DIR=1 first^)
 pause

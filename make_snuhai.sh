@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # ============================================================================
-#  make_snuhai.sh — 배포 폴더(snuhai-cli)를 만든다.
+#  make_snuhai.sh — build the distributable bundle (snuhai-cli).
 #
-#  ★ 인터넷이 되는 PC에서 한 번만 실행한다.
-#    만들어진 snuhai-cli 폴더를 통째로 폐쇄망 PC로 옮기고,
-#    그 안의 snuhai.bat (Windows) / snuhai.sh (Linux) 를 실행하면 끝이다.
+#  Run this ONCE on a machine with internet access.
+#    Then copy the resulting snuhai-cli.zip to the air-gapped machine and
+#    run snuhai.bat (Windows) / snuhai.sh (Linux) inside it.
 #
-#    ./make_snuhai.sh [win|linux|both]      기본값: both
+#    ./make_snuhai.sh [win|linux|both]      default: both
 # ============================================================================
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,35 +18,35 @@ LIB="$OUT/.snuhai"
 CODEX_VER="${CODEX_VER:-0.145.0}"
 NODE_VER="${NODE_VER:-24.18.0}"
 
-command -v npm  >/dev/null || { echo "[ERROR] npm 이 필요합니다 (인터넷 되는 PC에서 실행하세요)"; exit 1; }
-command -v curl >/dev/null || { echo "[ERROR] curl 이 필요합니다"; exit 1; }
+command -v npm  >/dev/null || { echo "[ERROR] npm is required (run this on a machine with internet)"; exit 1; }
+command -v curl >/dev/null || { echo "[ERROR] curl is required"; exit 1; }
 
 echo "============================================================"
-echo "  snuhai 번들 생성  (codex ${CODEX_VER} / node ${NODE_VER} / target=${TARGET})"
+echo "  Building snuhai bundle  (codex ${CODEX_VER} / node ${NODE_VER} / target=${TARGET})"
 echo "============================================================"
 rm -rf "$OUT"
 mkdir -p "$LIB/packages" "$LIB/node"
 
-# ---------- 1. Codex CLI (npm 원본 tarball) ----------
+# ---------- 1. Codex CLI (verbatim npm tarballs) ----------
 echo
-echo "[1/4] Codex CLI 내려받기..."
+echo "[1/4] Downloading Codex CLI..."
 cd "$LIB/packages"
 specs=("@openai/codex@${CODEX_VER}")
 [ "$TARGET" = "win"   ] || [ "$TARGET" = "both" ] && specs+=("@openai/codex@${CODEX_VER}-win32-x64")
 [ "$TARGET" = "linux" ] || [ "$TARGET" = "both" ] && specs+=("@openai/codex@${CODEX_VER}-linux-x64")
 npm pack "${specs[@]}" >/dev/null
 
-echo "[1/4] 무결성 검증 (npm 레지스트리 해시와 대조)..."
+echo "[1/4] Verifying integrity against the npm registry hashes..."
 { echo "# Verbatim npm artifacts — fetched $(date -u +%Y-%m-%dT%H:%MZ)"
   echo "# local sha512 MUST equal the registry integrity"; } > PROVENANCE.txt
 fail=0
 for spec in "${specs[@]}"; do
   reg=$(npm view "$spec" dist.integrity)
-  # npm pack 은 스코프 패키지를 '@' 제거 + '/'→'-' 로 바꿔 저장한다.
+  # npm pack stores scoped packages with '@' removed and '/' replaced by '-'.
   #   @openai/codex@0.145.0-linux-x64  ->  openai-codex-0.145.0-linux-x64.tgz
   pkg="${spec%@*}"; ver="${spec##*@}"
   fname="$(printf '%s' "$pkg" | sed 's/^@//; s#/#-#g')-${ver}.tgz"
-  [ -f "$fname" ] || { echo "[ERROR] 파일을 찾을 수 없습니다: $fname"; exit 1; }
+  [ -f "$fname" ] || { echo "[ERROR] File not found: $fname"; exit 1; }
   loc="sha512-$(openssl dgst -sha512 -binary "$fname" | base64 -w0)"
   if [ "$reg" = "$loc" ]; then st="OK  "; else st="FAIL"; fail=1; fi
   echo "       $st $spec"
@@ -54,11 +54,11 @@ for spec in "${specs[@]}"; do
          "$spec" "$reg" "$loc" "$fname" >> PROVENANCE.txt
 done
 sha256sum ./*.tgz > SHA256SUMS
-[ "$fail" = 0 ] || { echo "[ERROR] 무결성 불일치 — 중단합니다"; exit 1; }
+[ "$fail" = 0 ] || { echo "[ERROR] Integrity mismatch — aborting"; exit 1; }
 
-# ---------- 2. 포터블 Node ----------
+# ---------- 2. Portable Node ----------
 echo
-echo "[2/4] 포터블 Node.js 내려받기..."
+echo "[2/4] Downloading portable Node.js..."
 cd "$LIB/node"
 base="https://nodejs.org/dist/v${NODE_VER}"
 curl -fsSL "${base}/SHASUMS256.txt" -o SHASUMS256.txt
@@ -79,31 +79,31 @@ if [ "$TARGET" = "win" ] || [ "$TARGET" = "both" ]; then
 fi
 rm -f SHASUMS256.txt
 
-# ---------- 3. 실행 파일 배치 ----------
+# ---------- 3. Lay out the bundle ----------
 echo
-echo "[3/4] 실행 파일 배치..."
+echo "[3/4] Laying out the bundle..."
 cp "$SRC/gateway.js" "$LIB/gateway.js"
 cp "$HERE/NOTICE" "$LIB/NOTICE" 2>/dev/null || true
 cp "$HERE/LICENSE" "$LIB/LICENSE" 2>/dev/null || true
-# 루트에는 실행 파일만 노출한다
+# only the launcher is visible at the top level
 cp "$SRC/snuhai.bat" "$OUT/snuhai.bat"
 cp "$SRC/snuhai.sh"  "$OUT/snuhai.sh"
 chmod +x "$OUT/snuhai.sh"
-cat > "$OUT/읽어보세요.txt" <<'EOF'
-snuhai — 사내 LLM 서버로 Codex CLI 쓰기
+cat > "$OUT/README.txt" <<'EOF'
+snuhai - run Codex CLI against an internal LLM server
 
-  Windows : snuhai.bat 을 더블클릭하세요.
-  Linux   : ./snuhai.sh 를 실행하세요.
+  Windows : double-click  snuhai.bat
+  Linux   : run  ./snuhai.sh
 
-처음 실행하면 서버 주소·API 키·모델을 한 번만 물어봅니다.
-그 다음부터는 바로 실행됩니다. 인터넷은 필요하지 않습니다.
+On first run it asks once for the server URL, your API key and a model.
+After that it starts straight away. No internet required.
 
-(.snuhai 폴더에는 실행에 필요한 파일이 들어 있습니다. 지우지 마세요.)
+(.snuhai holds everything it needs to run - do not delete it.)
 EOF
 
-# ---------- 4. ZIP 으로 묶기 ----------
+# ---------- 4. Pack into a ZIP ----------
 echo
-echo "[4/4] ZIP 만드는 중..."
+echo "[4/4] Creating the ZIP..."
 cd "$HERE"
 python3 - "$OUT" <<'PY'
 import os, sys, zipfile
@@ -115,14 +115,14 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
             fp = os.path.join(root, n)
             arc = os.path.relpath(fp, base)
             if os.path.islink(fp):
-                # 심볼릭 링크를 링크 그대로 저장한다.
-                # (따라가서 내용을 복사하면 node/bin/npm 같은 shim 의 require 경로가 깨진다)
+                # store symlinks as symlinks.
+                # (dereferencing them breaks shims such as node/bin/npm)
                 zi = zipfile.ZipInfo(arc)
                 zi.create_system = 3                      # Unix
                 zi.external_attr = (0o120777 << 16)       # S_IFLNK | 0777
                 z.writestr(zi, os.readlink(fp))
                 continue
-            # ZipInfo.from_file 이 st_mode 를 external_attr 로 넣어준다 -> 실행권한 보존
+            # ZipInfo.from_file carries st_mode into external_attr -> exec bits preserved
             zi = zipfile.ZipInfo.from_file(fp, arc)
             zi.compress_type = zipfile.ZIP_DEFLATED
             with open(fp, "rb") as fh:
@@ -134,13 +134,13 @@ if [ "${KEEP_DIR:-0}" != "1" ]; then rm -rf "$OUT"; fi
 
 echo
 echo "============================================================"
-echo " 완료"
+echo " Done"
 echo "============================================================"
-ls -lh "$OUT.zip" | awk '{print "  파일:", $NF, "("$5")"}'
-echo "  해시: $(cut -c1-16 < "$OUT.zip.sha256")…  (전체는 $(basename "$OUT").zip.sha256)"
+ls -lh "$OUT.zip" | awk '{print "  file:", $NF, "("$5")"}'
+echo "  sha256: $(cut -c1-16 < "$OUT.zip.sha256")…  (full value in $(basename "$OUT").zip.sha256)"
 echo
-echo "  이 ZIP 하나만 폐쇄망 PC 로 옮기면 됩니다."
-echo "    1) 압축을 풉니다"
-echo "    2) Windows 는 snuhai.bat 더블클릭 / Linux 는 ./snuhai.sh 실행"
+echo "  Copy this single ZIP to the air-gapped machine:"
+echo "    1) unzip it"
+echo "    2) Windows: double-click snuhai.bat   Linux: ./snuhai.sh"
 echo
-echo "  (폴더도 남기려면  KEEP_DIR=1 ./make_snuhai.sh)"
+echo "  (keep the unzipped folder too:  KEEP_DIR=1 ./make_snuhai.sh)"

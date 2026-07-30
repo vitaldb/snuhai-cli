@@ -1,35 +1,36 @@
 #!/usr/bin/env bash
 # ============================================================
-#  snuhai — 사내 LLM 서버로 Codex CLI 실행 (폐쇄망용)
-#  이 파일 하나만 실행하면 된다. 최초 실행 시 설치·설정을 자동으로 한다.
+#  snuhai — run Codex CLI against an internal LLM server (air-gapped)
+#  Run this one file. It installs and configures itself on first use.
 # ============================================================
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB="$HERE/.snuhai"
-# 압축 해제 방식에 따라 실행권한이 사라진다(Windows 탐색기, python zipfile 등).
-# ZIP 에는 0755 로 저장돼 있지만 복원되지 않는 경우가 있어 여기서 되살린다.
+# Some unzip tools drop the executable bit (Windows Explorer, python zipfile...).
+# The ZIP stores 0755, but it is not always restored — repair it here.
 chmod +x "$0" 2>/dev/null || true
 for _f in "$LIB"/node/node-v*/bin/* ; do [ -f "$_f" ] && chmod +x "$_f" 2>/dev/null || true; done
 CFG="$HOME/.snuhai"
 export CODEX_HOME="$CFG/codex"
 export DISABLE_AUTOUPDATER=1
 
-[ -d "$LIB" ] || { echo "[ERROR] .snuhai 폴더가 없습니다. 번들이 손상되었습니다."; exit 1; }
+[ -d "$LIB" ] || { echo "[ERROR] .snuhai folder is missing. Copy the whole folder."; exit 1; }
 NODEDIR="$(ls -d "$LIB"/node/node-v*-linux-x64 2>/dev/null | head -1)"
-[ -n "$NODEDIR" ] || { echo "[ERROR] 번들에 Node 가 없습니다."; exit 1; }
+[ -n "$NODEDIR" ] || { echo "[ERROR] No bundled Node found."; exit 1; }
 export PATH="$NODEDIR/bin:$PATH"
 mkdir -p "$CFG" "$CODEX_HOME"
 
-# ---------- 1) 최초 1회: codex 오프라인 설치 ----------
+# ---------- 1) first run only: install Codex offline ----------
 if [ ! -f "$LIB/installed.flag" ]; then
-  echo "[설치] Codex CLI 를 설치합니다 (최초 1회, 인터넷 불필요)..."
+  echo "[setup] Installing Codex CLI (first run only, no internet needed)..."
   MAIN="$(ls "$LIB"/packages/openai-codex-*.tgz 2>/dev/null | grep -v -- '-linux-x64\|-win32-x64' | head -1)"
-  [ -n "$MAIN" ] || { echo "[ERROR] packages 에 codex tarball 이 없습니다."; exit 1; }
-  # bin/npm 은 심링크라 압축 해제 방식에 따라 깨질 수 있다. npm-cli.js 를 node 로 직접 부른다.
+  [ -n "$MAIN" ] || { echo "[ERROR] No codex tarball in packages/."; exit 1; }
+  # bin/npm is a symlink and may break depending on how the ZIP was extracted,
+  # so call npm-cli.js with node directly.
   NPMCLI="$NODEDIR/lib/node_modules/npm/bin/npm-cli.js"
   [ -f "$NPMCLI" ] || NPMCLI="$(command -v npm)"
   if ! node "$NPMCLI" install -g --offline --no-audit --no-fund "$MAIN" >"$CFG/install.log" 2>&1; then
-    echo "[ERROR] 설치 실패 — 자세한 내용: $CFG/install.log"; tail -5 "$CFG/install.log"; exit 1
+    echo "[ERROR] Install failed — see $CFG/install.log"; tail -5 "$CFG/install.log"; exit 1
   fi
   NATIVE="$(ls "$LIB"/packages/openai-codex-*-linux-x64.tgz 2>/dev/null | head -1)"
   if [ -n "$NATIVE" ]; then
@@ -39,58 +40,59 @@ if [ ! -f "$LIB/installed.flag" ]; then
     chmod -R +x "$CODEX_DIR"/vendor/*/bin "$CODEX_DIR"/vendor/*/codex-path 2>/dev/null || true
   fi
   echo ok > "$LIB/installed.flag"
-  echo "[설치] 완료"
+  echo "[setup] Done."
 fi
 
-# ---------- 2) 최초 1회: 서버·키·모델 설정 ----------
+# ---------- 2) first run only: server, key, model ----------
 if [ ! -f "$CFG/conf.sh" ]; then
   echo
   echo "============================================================"
-  echo "  snuhai 최초 설정"
+  echo "  snuhai first-time setup"
   echo "============================================================"
   echo
-  echo " [1] 사내 LLM 서버 주소"
-  echo "     그냥 Enter 를 누르면 서울대학교병원 기본값을 사용합니다."
-  echo "     기본값: https://llm.snuh.org/llm"
-  read -r -p "서버 주소 (Enter=기본값): " EP
+  echo " [1] Internal LLM server URL"
+  echo "     Press Enter to use the Seoul National University Hospital default."
+  echo "     default: https://llm.snuh.org/llm"
+  read -r -p "Server URL (Enter = default): " EP
   EP="${EP:-https://llm.snuh.org/llm}"
   echo
-  echo " [2] API 키 발급 방법 (원내망에서)"
-  echo "     1. 브라우저로  https://ai.snuh.org  접속"
-  echo "     2. SNUHUB 계정으로 로그인"
-  echo "     3. 왼쪽 메뉴  MY > 나의 키 관리   (주소: ai.snuh.org/setting/my-key)"
-  echo "     4. 오른쪽 위  + 추가  클릭"
-  echo "     5. 구분 LLM 선택, 설명에 snuhai-cli 등을 입력하고 발급"
-  echo "     6. 만들어진 키 값 (sk- 로 시작) 을 복사해 아래에 붙여넣기"
+  echo " [2] How to get an API key (from the intranet)"
+  echo "     1. Open  https://ai.snuh.org  in your browser"
+  echo "     2. Sign in with your SNUHUB account"
+  echo "     3. Left menu:  MY > My Key Management  [나의 키 관리]"
+  echo "        (direct link: ai.snuh.org/setting/my-key)"
+  echo "     4. Click  + Add  [추가]  at the top right"
+  echo "     5. Type = LLM, description e.g. snuhai-cli, then issue it"
+  echo "     6. Copy the key value (starts with sk-) and paste it below"
   echo
-  read -r -p "API 키: " KEY
-  [ -n "${KEY:-}" ] || { echo "[ERROR] 키가 필요합니다."; exit 1; }
+  read -r -p "API key: " KEY
+  [ -n "${KEY:-}" ] || { echo "[ERROR] A key is required."; exit 1; }
   echo
-  echo " 사용 가능한 모델을 조회합니다..."
+  echo " Fetching available models..."
   curl -s -H "Authorization: Bearer $KEY" "$EP/models" \
     | grep -o '"id"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"\([^"]*\)"$/  \1/' \
-    | grep -viE 'asr|embed|tts|speech|whisper' || echo "  (목록을 가져오지 못했습니다)"
+    | grep -viE 'asr|embed|tts|speech|whisper' || echo "  (could not fetch the list)"
   echo
-  read -r -p "사용할 모델 이름: " MODEL
-  [ -n "${MODEL:-}" ] || { echo "[ERROR] 모델이 필요합니다."; exit 1; }
+  read -r -p "Model name: " MODEL
+  [ -n "${MODEL:-}" ] || { echo "[ERROR] A model is required."; exit 1; }
   echo
-  echo " 서버가 Responses API 를 지원하는지 확인합니다..."
+  echo " Checking whether the server supports the Responses API..."
   RC="$(curl -s -o /dev/null -w '%{http_code}' -X POST \
         -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
         -d "{\"model\":\"$MODEL\",\"input\":\"hi\"}" "$EP/responses" 2>/dev/null)"
-  if [ "$RC" = "200" ]; then GW=0; echo "  -> 직결 가능 (Responses API 지원)"
-  else GW=1; echo "  -> 게이트웨이 사용 (Chat 전용 서버, HTTP $RC)"; fi
+  if [ "$RC" = "200" ]; then GW=0; echo "  -> direct connection (Responses API supported)"
+  else GW=1; echo "  -> using the gateway (chat-only server, HTTP $RC)"; fi
   umask 077
   { echo "EP=$EP"; echo "KEY=$KEY"; echo "MODEL=$MODEL"; echo "GW=$GW"; } > "$CFG/conf.sh"
   echo
-  echo " 설정이 저장되었습니다: $CFG/conf.sh"
-  echo " (다시 설정하려면 이 파일을 지우고 실행하세요)"
+  echo " Saved to $CFG/conf.sh"
+  echo " (delete that file and run again to reconfigure)"
   echo
 fi
 # shellcheck disable=SC1090
 . "$CFG/conf.sh"
 
-# ---------- 3) codex 설정 파일 생성 ----------
+# ---------- 3) write the codex config ----------
 if [ "$GW" = "1" ]; then BASE="http://127.0.0.1:4600/v1"; else BASE="$EP"; fi
 cat > "$CODEX_HOME/config.toml" <<TOML
 model = "$MODEL"
@@ -109,14 +111,14 @@ input_modalities = ["text"]
 TOML
 export SNUHAI_API_KEY="$KEY"
 
-# ---------- 4) 필요하면 게이트웨이 기동 ----------
+# ---------- 4) start the gateway if needed ----------
 if [ "$GW" = "1" ]; then
-  echo "[gateway] 시작 중..."
+  echo "[gateway] starting..."
   GW_UPSTREAM="$EP" node "$LIB/gateway.js" >"$CFG/gateway.log" 2>&1 &
   GWPID=$!
   trap 'kill $GWPID 2>/dev/null' EXIT
   sleep 2
 fi
 
-# ---------- 5) codex 실행 ----------
+# ---------- 5) run codex ----------
 codex "$@"

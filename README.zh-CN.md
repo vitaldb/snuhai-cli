@@ -46,31 +46,31 @@ snuhai-cli/
 
 ```console
 ============================================================
-  snuhai 최초 설정      (首次设置)
+  snuhai first-time setup
 ============================================================
 
- [1] 内部 LLM 服务器地址
-     直接回车即使用首尔大学医院默认值。
-     默认值: https://llm.snuh.org/llm
-服务器地址（回车＝默认值）:
+ [1] Internal LLM server URL
+     Press Enter to use the Seoul National University Hospital default.
+     default: https://llm.snuh.org/llm
+Server URL (Enter = default):
 
- [2] API 密钥申请方法（在内网中）
-     1. 用浏览器打开  https://ai.snuh.org
-     2. 使用 SNUHUB 账号登录
-     3. 左侧菜单  MY > 나의 키 관리（我的密钥管理）
-        （直达 ai.snuh.org/setting/my-key）
-     4. 点击右上角  + 추가（添加）
-     5. 类别选 LLM，说明填 snuhai-cli 之类的名称后签发
-     6. 复制生成的密钥值（以 sk- 开头）并粘贴到下面
-        （在此窗口中单击鼠标右键即为粘贴）
+ [2] How to get an API key (from the intranet)
+     1. Open  https://ai.snuh.org  in your browser
+     2. Sign in with your SNUHUB account
+     3. Left menu:  MY > My Key Management  [나의 키 관리]
+        (direct link: ai.snuh.org/setting/my-key)
+     4. Click  + Add  [추가]  at the top right
+     5. Type = LLM, description e.g. snuhai-cli, then issue it
+     6. Copy the key value (starts with sk-) and paste it below
+        (right-click in this window = paste)
 
-API 密钥:
+API key:
 
- 正在查询可用模型...
-使用的模型名称:
+ Fetching available models...
+Model name:
 ```
 
-*（离线包界面为韩文，流程完全相同。）*
+*（方括号中的韩文与 SNUH.AI 网站上的实际菜单一致。）*
 
 配置保存在 `%USERPROFILE%\.snuhai`（Linux：`~/.snuhai`）。
 

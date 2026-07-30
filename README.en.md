@@ -58,9 +58,10 @@ Server URL (Enter = default):
  [2] How to get an API key (from the intranet)
      1. Open  https://ai.snuh.org  in your browser
      2. Sign in with your SNUHUB account
-     3. Left menu:  MY > My Key Management   (ai.snuh.org/setting/my-key)
-     4. Click  + Add  (top right)
-     5. Choose type LLM, give it a name such as snuhai-cli, and issue it
+     3. Left menu:  MY > My Key Management  [나의 키 관리]
+        (direct link: ai.snuh.org/setting/my-key)
+     4. Click  + Add  [추가]  at the top right
+     5. Type = LLM, description e.g. snuhai-cli, then issue it
      6. Copy the key value (starts with sk-) and paste it below
         (right-click in this window = paste)
 
@@ -70,7 +71,7 @@ API key:
 Model name:
 ```
 
-*(The bundle speaks Korean by default; the flow is identical.)*
+*(The Korean labels in brackets match what you see on the SNUH.AI site.)*
 
 Settings are stored in `%USERPROFILE%\.snuhai` (Linux: `~/.snuhai`).
 
