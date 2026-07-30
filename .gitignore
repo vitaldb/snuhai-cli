@@ -8,3 +8,4 @@ snuhai-cli/
 secrets.env
 conf.sh
 conf.bat
+*.sha256
